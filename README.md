@@ -14,10 +14,14 @@ This tool provides Claude with the ability to search and retrieve documents from
 
 ## Installation
 
+> **Note**: Your Outline API key must have the following permissions:
+> - `documents.info` - For retrieving document content
+> - `documents.search` - For searching documents
+
 ### Option 1: Install via Smithery CLI (requires smithery key)
 
 ```bash
-npx -y @smithery/cli@latest install @ChrisL108/outline-mcp --client claude --key your-smithery-key
+npx -y @smithery/cli@latest install @ChrisL108/outline-mcp --client claude --key your-smithery-api-key
 ```
 
 You can enter your `OUTLINE_URL` and `OUTLINE_API_KEY` when prompted by Claude or add them to your `claude_desktop_config.json` directly:
@@ -25,7 +29,7 @@ You can enter your `OUTLINE_URL` and `OUTLINE_API_KEY` when prompted by Claude o
 ```json
 "env": {
     "OUTLINE_URL": "https://your.outline.com",
-    "OUTLINE_API_KEY": "your-api-key"
+    "OUTLINE_API_KEY": "your-outline-api-key"
 }
 ```
 
@@ -40,11 +44,11 @@ This will update your config to look like this:
       "run",
       "@ChrisL108/outline-mcp",
       "--key",
-      "your-smithery-key"
+      "your-smithery-api-key"
     ],
     "env": {
       "OUTLINE_URL": "https://your.outline.com",
-      "OUTLINE_API_KEY": "your-api-key"
+      "OUTLINE_API_KEY": "your-outline-api-key"
     }
 }
 ```
@@ -61,7 +65,7 @@ This will update your config to look like this:
     ],
     "env": {
       "OUTLINE_URL": "https://your.outline.com",
-      "OUTLINE_API_KEY": "your-api-key"
+      "OUTLINE_API_KEY": "your-outline-api-key"
     }
 }
 ```
