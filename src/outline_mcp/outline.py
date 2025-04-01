@@ -2,9 +2,12 @@ from typing import Any, List, Optional
 import httpx
 import json
 import os
+import sys
+import asyncio
 from mcp.server.fastmcp import FastMCP
 
 import logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
@@ -203,3 +206,17 @@ Content:
             
         except Exception as e:
             return f"Error retrieving document: {str(e)}"
+
+def main():
+    """Entry point for the MCP server."""
+    try:
+        # Log startup
+        logger.info("Starting Outline MCP server")
+        # Start the MCP server
+        asyncio.run(mcp.run_stdio())
+    except Exception as e:
+        logger.error(f"Error running MCP server: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
