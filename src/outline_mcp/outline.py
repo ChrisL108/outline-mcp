@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from typing import Any, List, Optional
 import httpx
 import json
@@ -6,23 +7,27 @@ import sys
 import asyncio
 from mcp.server.fastmcp import FastMCP
 
-import logging
-# Setup basic logger for now, main() will configure it more thoroughly
-logger = logging.getLogger(__name__)
+# Direct stderr output for debugging
+sys.stderr.write("OUTLINE-MCP: Script starting\n")
+sys.stderr.flush()
 
 # Initialize FastMCP server
-print("Initializing FastMCP server", file=sys.stderr)
+sys.stderr.write("OUTLINE-MCP: Initializing FastMCP server\n")
+sys.stderr.flush()
 
 # Create the FastMCP instance
 try:
     mcp = FastMCP(
         "outline-search",
         title="Outline Knowledge Base Search",
-        description="Search and retrieve documents from Outline knowledge bases"
+        description="Search and retrieve documents from Outline knowledge bases",
+        version="0.1.0"
     )
-    print(f"FastMCP server initialized: {mcp}", file=sys.stderr)
+    sys.stderr.write("OUTLINE-MCP: FastMCP server initialized\n")
+    sys.stderr.flush()
 except Exception as e:
-    print(f"Failed to initialize FastMCP: {str(e)}", file=sys.stderr)
+    sys.stderr.write(f"OUTLINE-MCP: Failed to initialize FastMCP: {str(e)}\n")
+    sys.stderr.flush()
     raise
 
 # Path for storing credentials
@@ -229,48 +234,41 @@ Content:
 
 def main():
     """Entry point for the MCP server."""
+    sys.stderr.write("OUTLINE-MCP: Starting main function\n")
+    sys.stderr.flush()
+    
+    # Print environment info for debugging
+    sys.stderr.write(f"OUTLINE-MCP: OUTLINE_URL={os.environ.get('OUTLINE_URL', 'Not set')}\n")
+    sys.stderr.write(f"OUTLINE-MCP: OUTLINE_API_KEY present={bool(os.environ.get('OUTLINE_API_KEY'))}\n")
+    sys.stderr.flush()
+    
+    # List registered tools
+    sys.stderr.write("OUTLINE-MCP: Registered tools:\n")
+    
+    # Try to get tools using the correct method
     try:
-        # Set up logging configuration first
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.StreamHandler(sys.stderr),
-                logging.FileHandler("outline_mcp_debug.log")
-            ]
-        )
-        
-        # Enable MCP library debugging
-        logging.getLogger('mcp').setLevel(logging.DEBUG)
-        
-        # Print to stderr for debugging
-        print("Starting Outline MCP server", file=sys.stderr)
-        
-        # Debug information
-        logger.info("Starting Outline MCP server")
-        logger.debug(f"Environment vars: OUTLINE_URL={os.environ.get('OUTLINE_URL', 'Not set')}")
-        logger.debug(f"Using credentials file: {CREDENTIALS_FILE}")
-        
-        # List registered tools for debugging
-        for tool in mcp.tools.values():
-            logger.debug(f"Registered tool: {tool.name}")
-        
-        # Start the MCP server with better error reporting
-        print("Running MCP server on stdio", file=sys.stderr)
-        
-        # Use proper error handling
-        try:
-            print("Starting MCP server with stdio transport", file=sys.stderr)
-            # Use the synchronous run method instead of the async version
-            mcp.run(transport="stdio")
-        except KeyboardInterrupt:
-            print("MCP server stopped by user", file=sys.stderr)
-            sys.exit(0)
+        # The correct way to list tools in recent MCP versions
+        tools = asyncio.run(mcp.list_tools())
+        for tool in tools:
+            sys.stderr.write(f"OUTLINE-MCP: - {tool.name}\n")
+    except Exception as e:
+        sys.stderr.write(f"OUTLINE-MCP: Error listing tools: {str(e)}\n")
+    
+    sys.stderr.flush()
+    
+    # Simple and direct approach - run the server
+    sys.stderr.write("OUTLINE-MCP: Starting MCP server with stdio transport\n")
+    sys.stderr.flush()
+    
+    try:
+        # Run the server with the stdio transport (Smithery expects this)
+        mcp.run(transport="stdio")
     except Exception as e:
         import traceback
-        error_details = traceback.format_exc()
-        print(f"Error running MCP server: {e}\n{error_details}", file=sys.stderr)
-        logger.error(f"Error running MCP server: {e}\n{error_details}")
+        error_trace = traceback.format_exc()
+        sys.stderr.write(f"OUTLINE-MCP: Error running MCP server: {str(e)}\n")
+        sys.stderr.write(error_trace)
+        sys.stderr.flush()
         sys.exit(1)
 
 if __name__ == "__main__":

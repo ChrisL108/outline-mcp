@@ -18,4 +18,11 @@ startCommand:
   commandFunction:
     # A function that produces the CLI command to start the MCP on stdio.
     |-
-    (config) => ({ command: 'outline-mcp', env: { OUTLINE_URL: config.outlineUrl, OUTLINE_API_KEY: config.apiKey } })
+    (config) => ({ 
+      command: 'python',
+      args: ['-m', 'outline_mcp.outline'],
+      env: { 
+        OUTLINE_URL: config.outlineUrl, 
+        OUTLINE_API_KEY: config.apiKey 
+      } 
+    })
