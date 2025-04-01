@@ -7,12 +7,23 @@ import asyncio
 from mcp.server.fastmcp import FastMCP
 
 import logging
-logging.basicConfig(level=logging.INFO)
+# Setup basic logger for now, main() will configure it more thoroughly
 logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
-logger.debug("Initializing FastMCP server")
-mcp = FastMCP("outline-search")
+print("Initializing FastMCP server", file=sys.stderr)
+
+# Create the FastMCP instance
+try:
+    mcp = FastMCP(
+        "outline-search",
+        title="Outline Knowledge Base Search",
+        description="Search and retrieve documents from Outline knowledge bases"
+    )
+    print(f"FastMCP server initialized: {mcp}", file=sys.stderr)
+except Exception as e:
+    print(f"Failed to initialize FastMCP: {str(e)}", file=sys.stderr)
+    raise
 
 # Path for storing credentials
 CREDENTIALS_FILE = os.path.expanduser("~/.outline_mcp_credentials.json")
@@ -153,6 +164,15 @@ async def update_credentials(outline_url: str, api_key: str) -> str:
     return "Credentials updated successfully"
 
 @mcp.tool()
+async def ping() -> str:
+    """Simple test function to verify the MCP server is working.
+    
+    Returns:
+        A simple status message
+    """
+    return "Outline MCP server is running correctly"
+
+@mcp.tool()
 async def get_document_by_id(document_id: str) -> str:
     """Get full document content by ID.
     
@@ -210,12 +230,47 @@ Content:
 def main():
     """Entry point for the MCP server."""
     try:
-        # Log startup
+        # Set up logging configuration first
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.StreamHandler(sys.stderr),
+                logging.FileHandler("outline_mcp_debug.log")
+            ]
+        )
+        
+        # Enable MCP library debugging
+        logging.getLogger('mcp').setLevel(logging.DEBUG)
+        
+        # Print to stderr for debugging
+        print("Starting Outline MCP server", file=sys.stderr)
+        
+        # Debug information
         logger.info("Starting Outline MCP server")
-        # Start the MCP server
-        asyncio.run(mcp.run_stdio())
+        logger.debug(f"Environment vars: OUTLINE_URL={os.environ.get('OUTLINE_URL', 'Not set')}")
+        logger.debug(f"Using credentials file: {CREDENTIALS_FILE}")
+        
+        # List registered tools for debugging
+        for tool in mcp.tools.values():
+            logger.debug(f"Registered tool: {tool.name}")
+        
+        # Start the MCP server with better error reporting
+        print("Running MCP server on stdio", file=sys.stderr)
+        
+        # Use proper error handling
+        try:
+            print("Starting MCP server with stdio transport", file=sys.stderr)
+            # Use the synchronous run method instead of the async version
+            mcp.run(transport="stdio")
+        except KeyboardInterrupt:
+            print("MCP server stopped by user", file=sys.stderr)
+            sys.exit(0)
     except Exception as e:
-        logger.error(f"Error running MCP server: {e}")
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error running MCP server: {e}\n{error_details}", file=sys.stderr)
+        logger.error(f"Error running MCP server: {e}\n{error_details}")
         sys.exit(1)
 
 if __name__ == "__main__":
