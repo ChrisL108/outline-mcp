@@ -18,6 +18,8 @@ This tool provides Claude with the ability to search and retrieve documents from
 > - `documents.info` - For retrieving document content
 > - `documents.search` - For searching documents
 
+> **Note**: If `OUTLINE_URL` and `OUTLINE_API_KEY` are not provided in your config, Claude will prompt you for them. These credentials will be saved in `~/.outline_mcp_credentials.json` for future use.
+
 ### Option 1: Install via Smithery CLI (requires smithery key)
 
 ```bash
@@ -33,7 +35,7 @@ You can enter your `OUTLINE_URL` and `OUTLINE_API_KEY` when prompted by Claude o
 }
 ```
 
-This will update your config to look like this:
+Your config should look like this:
 
 ```json
 "outline-mcp": {
