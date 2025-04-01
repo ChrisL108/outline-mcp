@@ -4,7 +4,11 @@ import json
 import os
 from mcp.server.fastmcp import FastMCP
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Initialize FastMCP server
+logger.debug("Initializing FastMCP server")
 mcp = FastMCP("outline-search")
 
 # Path for storing credentials
@@ -94,18 +98,22 @@ async def search_documents(
         status_filter: Filter by status (default: "published")
         date_filter: Filter by date (default: "year")
     """
-    # Try to load stored credentials
+    # Check environment variables first
+    env_url = os.environ.get("OUTLINE_URL")
+    env_key = os.environ.get("OUTLINE_API_KEY")
+    
+    # Try to load stored credentials next
     credentials = load_credentials()
     
-    # Use provided credentials or stored ones
-    final_url = outline_url or (credentials and credentials.get("outline_url"))
-    final_key = api_key or (credentials and credentials.get("api_key"))
+    # Use values in this priority: provided directly > environment variables > stored credentials
+    final_url = outline_url or env_url or (credentials and credentials.get("outline_url"))
+    final_key = api_key or env_key or (credentials and credentials.get("api_key"))
     
     # If no credentials available, inform the user
     if not final_url or not final_key:
         return "Please provide both outline_url and api_key for the first search"
     
-    # Save new credentials if provided
+    # Save new credentials if provided directly
     if outline_url and api_key:
         save_credentials(outline_url, api_key)
     
@@ -148,16 +156,18 @@ async def get_document_by_id(document_id: str) -> str:
     Args:
         document_id: ID of the document to retrieve
     """
-    # Load credentials
-    credentials = load_credentials()
-    if not credentials:
-        return "No credentials found. Please use the search_documents tool first to set up credentials."
+    # Check environment variables first
+    env_url = os.environ.get("OUTLINE_URL")
+    env_key = os.environ.get("OUTLINE_API_KEY")
     
-    outline_url = credentials.get("outline_url")
-    api_key = credentials.get("api_key")
+    # Load stored credentials as fallback
+    credentials = load_credentials()
+    
+    outline_url = env_url or (credentials and credentials.get("outline_url"))
+    api_key = env_key or (credentials and credentials.get("api_key"))
     
     if not outline_url or not api_key:
-        return "Invalid credentials. Please update them using the update_credentials tool."
+        return "No credentials found. Please use the search_documents tool first to set up credentials or set OUTLINE_URL and OUTLINE_API_KEY environment variables."
     
     # Make API request to get document
     headers = {
@@ -193,7 +203,3 @@ Content:
             
         except Exception as e:
             return f"Error retrieving document: {str(e)}"
-
-if __name__ == "__main__":
-    # Initialize and run the server
-    mcp.run(transport='stdio')
